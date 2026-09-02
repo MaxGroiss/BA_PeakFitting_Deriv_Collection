@@ -1,0 +1,122 @@
+
+\usepackage[numbers]{natbib}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{epigraph}
+\usepackage[ngerman,english]{babel}
+\usepackage[final]{pdfpages}
+
+
+\usepackage[hyphens]{url}
+
+\usepackage{balance}
+\usepackage{lipsum}
+\usepackage{xspace}
+\usepackage{listings}
+\usepackage{paralist}
+\usepackage{fancyvrb}
+\usepackage{enumitem}
+\usepackage{datetime2}
+\usepackage{silence}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+
+\usepackage{placeins}
+\usepackage[pdftex,
+            pdfauthor={Tobias Scheipel},
+            pdftitle={Thesis Template},
+            pdfsubject={},
+            pdfkeywords={},
+            pdfproducer={LaTeX with thesis design by Scheipel, based on scrbook},
+            pdfcreator=pdfTeX{}, hidelinks, pdfdisplaydoctitle, pagebackref]{hyperref}
+
+\usepackage{multirow}
+\usepackage{makecell} 
+\usepackage{siunitx}
+
+\usepackage{geometry} %% --> is defined in 1_title.tex
+
+\definecolor{jsoncomment}{RGB}{163,21,21}
+\definecolor{pseudofunc}{RGB}{121,94,38}
+\definecolor{pseudoenum}{RGB}{0,16,128}
+\definecolor{pseudonumber}{RGB}{9,136,90}
+\definecolor{pseudoenum}{RGB}{0,16,128}
+\definecolor{scred}{RGB}{255,1,1}
+\definecolor{scgreen}{RGB}{6,130,6}
+\definecolor{scblue}{RGB}{0,0,255}
+
+
+\usepackage[]{graphicx}
+\graphicspath{{pic/},{pic/4/},{pic/5/}}
+\DeclareGraphicsExtensions{.pdf,.png}
+\pdfminorversion=7
+
+\usepackage[acronym,automake,shortcuts,toc]{glossaries}
+
+
+\input{tex/listingconfig.tex}
+\input{tex/cmd.tex}
+
+
+\usepackage[normalem]{ulem}
+
+
+
+%% font and other styling
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\usepackage{mathptmx}
+\usepackage[scaled]{helvet}
+\usepackage{libertine}
+
+\usepackage[scaled=.9]{cascadia-code}
+\usepackage{tocbasic}
+\usepackage{scrhack}
+\usepackage{tikz}
+\usetikzlibrary{patterns}
+
+\usepackage[most]{tcolorbox}
+
+
+\usepackage{nicefrac}
+\usepackage{wrapfig}
+
+\usepackage{todonotes}
+
+
+\renewcommand\raggedchapter{\raggedright}
+\renewcommand\chapterformat{\raggedleft\huge \usefont{T1}{phv}{m}{it} CHAPTER  \hspace{.3cm}\usefont{T1}{phv}{b}{n}\resizebox{!}{2cm}\thechapter}
+\renewcommand\chapterlineswithprefixformat[3]{#2#3\vspace*{-0.75\baselineskip}\hrulefill\par\nobreak}
+
+\renewcommand*{\chaptermarkformat}{\textnormal{\sffamily\chaptername~\thechapter:\enskip}}
+
+\renewcommand*{\headfont}{\sffamily\itshape}
+\renewcommand*{\pnumfont}{\sffamily}
+
+\raggedbottom 
+
+\makeatletter
+\usepackage{etoolbox,refcount}
+\pretocmd{\tableofcontents}{%
+  \if@openright\cleardoublepage\else\clearpage\fi
+  \pdfbookmark[0]{\contentsname}{toc}%
+}{}{}%
+\makeatother
+
+
+% colors for textboxes
+\definecolor{arsenic}{rgb}{0.23, 0.27, 0.29}
+\definecolor{beige}{rgb}{0.96, 0.96, 0.86}
+\definecolor{camel}{rgb}{0.76, 0.6, 0.42}
+\definecolor{eggshell}{rgb}{0.94, 0.92, 0.84}
+
+
+\patchcmd{\thebibliography}
+  {\clubpenalty 4000\widowpenalty 4000}
+  {\clubpenalties 1 10000 \widowpenalties 1 10000 }
+  {}{}

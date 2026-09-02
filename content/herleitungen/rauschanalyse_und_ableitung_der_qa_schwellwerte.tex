@@ -1,0 +1,71 @@
+\section{Rauschanalyse und Ableitung der QA-Schwellwerte}
+
+\subsection{Motivation und Problemstellung}
+Die Erstellung repräsentativer Abgasprofile erfordert Qualitätskriterien, die jede isolierte Abgasfahne vor der Mittelung zu einer Vorlage erfüllen muss. Der \textit{plume\_template\_extraction}-Algorithmus prüft die Daten hierzu auf Fehlaufzeichnungen, anomale Signalverläufe sowie unzureichende Signalstärken. Während Fehlaufzeichnungen wie Sensorausfälle über einen bewusst händisch gesetzten Minimalwert erkannt werden, den das Signal über eine Mindestdauer zusammenhängend unterschreiten muss, orientieren sich die Schwellwerte der übrigen Prüfungen an der Stärke des Messrauschens. Als Grundlage für deren einheitliche und kanalunabhängige Definition dient die im Folgenden beschriebene Rauschanalyse. Detektionsrelevante Parameter werden dabei als Vielfaches der Rauschstandardabweichung $\sigma$ ausgedrückt.
+
+\subsection{Signalmodell und Annahmen}
+Das über „Point Sampling“ aufgezeichnete Konzentrationssignal eines Messkanals $x(t)$ setzt sich aus einem langsam driftenden Hintergrund $b(t)$, Messrauschen $\varepsilon(t)$ und den transienten Abgasfahnen $p_j(t)$ der passierenden Fahrzeuge $j$ zusammen. Die in \eqref{eq:signalmodell} gezeigte Signalzerlegung folgt der in \cite{knollLargescaleAutomatedEmission2024} etablierten Sicht auf das Messsignal als Überlagerung von Fahrzeugemissionen und Hintergrund, erweitert sie jedoch um den Rauschterm $\varepsilon(t)$. 
+
+\begin{equation}
+    x(t) = b(t)+ \varepsilon(t)+\sum_{j}p_{j}(t)
+\label{eq:signalmodell}
+\end{equation}
+
+\noindent
+Der Begriff „Messsegment“ wird im Folgenden für einen zusammenhängend aufgezeichneten und gemeinsam verarbeiteten Datensatz verwendet. In der betrachteten Messkampagne (CARES-Milan \cite{knollLargescaleAutomatedEmission2024}) entspricht ein Messsegment einem Messtag. Passagezeiten werden unabhängig vom Konzentrationssignal über eine Lichtschranke erfasst. Zwischen Durchfahrten liefert das Konzentrationssignal die Nullmessung, gegen die Detektionsentscheidungen getroffen werden.
+Die Rauschanalyse erfolgt unter \autoref{ann:StatInTag} bis \autoref{ann:DefRauschen}.
+\begin{annahme}\label{ann:StatInTag}
+Rauschen in fahrzeugfreien Phasen ist repräsentativ für das Rauschen während einer Abgasfahne und wird innerhalb eines Messsegments als stationäre Größe behandelt.
+\end{annahme}
+\begin{annahme}\label{ann:VollstMaskierung}
+Die Lichtschranke erfasst jedes Fahrzeug $j$, welches den Messaufbau passiert.
+\end{annahme}
+\begin{annahme}\label{ann:DefRauschen}
+Messrauschen beinhaltet alle Abweichungen vom driftenden Hintergrund $b(t)$, die nicht durch die Abgasfahne $p_j(t)$ einer erfassten Durchfahrt $j$ verursacht wurden. 
+\end{annahme}
+
+
+\subsection{Statistische Grundlagen}
+Um eine hohe Robustheit gegenüber Ausreißern zu gewährleisten, die aufgrund der weit gefassten Definition in \autoref{ann:DefRauschen} zu erwarten sind, wird das Rauschen $\varepsilon(t)$ über die \textbf{Median Absolute Deviation (MAD)} geschätzt. Die Hintergrundschätzung $\hat{b}(t)$  erfolgt über das rollierende 2\,\%-Perzentil \cite[vgl.][S. 11700]{farrenHighlyDisaggregatedParticulate2025}. Unter der Definition des allgemeinen Signalresiduums $r(t) = x(t) - \hat{b}(t)$ und der Menge der fahrzeugfreien Zeitpunkte 
+\begin{equation}
+T_0 = \left\{ t \;\middle|\; \sum_{j}p_{j}(t) = 0 \right\}
+\end{equation}
+ergibt sich für das nach \autoref{ann:VollstMaskierung} fahrzeugfreie Signalresiduum $r_F(t)$:
+\begin{equation}
+r_F(t) = x(t)\big|_{T_0} - \hat{b}(t)\big|_{T_0}
+\end{equation}
+Die MAD berechnet sich aus dem Median der absoluten Abweichung der Datenreihe von ihrem Median.
+\begin{equation}
+    MAD = \mathrm{median}(|r_F - \mathrm{median}(r_F) |)
+\end{equation}
+ Da sich das Rauschen als Überlagerung vieler unabhängiger kleiner Störeinflüsse auffassen lässt, wird es unter Verweis auf den Zentralen Grenzwertsatz \cite[vgl.][S. 324]{fahrmeirStatistikWegZur2024} als annähernd normalverteilt angenommen. Durch diese Annahme kann die MAD über die Konstante $c=1 / \left(\Phi^{-1}\left( \frac{3}{4} \right) \right)\approx 1,4826$ als robuster Schätzer für die Standardabweichung $\widehat{\sigma}$ verwendet werden.
+\begin{equation}
+    \widehat{\sigma} = c \cdot MAD = 1,4826 \cdot MAD
+\end{equation}
+In der Umsetzung wird $T_0$ über feste Ausschlussfenster um jede erfasste Durchfahrt approximiert. Über das Fenster hinaus abklingende Fahnenreste zählen damit zum Rauschen, was $\widehat{\sigma}$ konservativ überschätzt.
+
+\subsection{Anwendung auf die QA-Parameter}
+Der Parameter \textit{min\_peak\_above\_bg} \eqref{eq:MinPeakAbovBg} entscheidet über die für Vorlagenbildung ausreichende Ausprägung einer isolierten Abgasfahne. Hierbei wird \textit{min\_peak\_above\_bg} als Vielfaches $k$ von $\widehat{\sigma}$ über dem Rauschmedian $\mathrm{median}(r_F)$ definiert. 
+
+\begin{equation}
+min\_peak\_above\_bg = \mathrm{median}(r_F) + k \cdot \widehat{\sigma}
+\label{eq:MinPeakAbovBg}
+\end{equation}
+\noindent
+Ein weiterer Parameter bezüglich der Prominenz eines Abgaspeaks ist \textit{min\_prominence\_floor} \eqref{eq:MinPromFloor}. Er bildet die untere Schranke der Prominenzschwelle in der Mehrfachpeak-Erkennung und verhindert damit, dass reine Rauschpeaks als eigenständige Peaks interpretiert werden. Die eigentliche Relativprüfung gegenüber der Höhe des Hauptpeaks erfolgt über den separat beschriebenen Parameter \textit{min\_prominence\_ratio}, wobei von beiden Schwellen stets die größere greift. Definiert ist \textit{min\_prominence\_floor} als Vielfaches $k$ von $\widehat{\sigma}$. Da die Prominenz eine relative Größe zwischen Peak und Umgebung ist, entfällt der Rauschmedian Offset.
+
+\begin{equation}
+min\_prominence\_floor = k \cdot \widehat{\sigma}
+\label{eq:MinPromFloor}
+\end{equation}
+\noindent
+Die Analyse von anomalen Signalverläufen beschränkt sich auf das Abklingverhalten der Abgasfahnen. Gemäß \cite[S. 11700]{farrenHighlyDisaggregatedParticulate2025} geht das mittlere Abgasfahnenprofil nach einem steilen Anstieg in einen exponentiellen Abfall über, dieser Abfall wird auf Monotonie überprüft. Ziel der Überprüfung ist es anomale Abfälle zu markieren, welche mit entsprechender Konfidenz nicht rein auf Signalrauschen rückführbar sind. Die Ableitung dieser Parameter beruht stark auf der \autoref{ann:StatInTag}.
+
+
+Die Variable \textit{window\_after\_peak} definiert den erwarteten Zeitraum des Signalabfalls. Hierzu wird das fahrzeugfreie Signalresiduum $r_F(t)$ in $m$ Segmente der Länge \textit{window\_after\_peak} aufgeteilt. Diese Segmente werden mit einem gleitenden Mittelwert \cite[vgl.][S. 567]{fahrmeirStatistikWegZur2024} geglättet und dann der kumulative Anstieg $S_m$ im Segment berechnet. Das Resultat ist eine empirische Verteilung der Wiederanstiege, die der Kanal in fahrzeugfreien Abschnitten des betrachteten Messsegments aufweist. Die Abfallflanke $tail$ der zu überprüfenden Abgasfahne durchläuft dieselbe Glättung wie die Referenzsegmente $m$. \vspace{1em}
+\noindent
+Der QA-Parameter $p=$\textit{tail\_percentile} legt die Strenge des Kriteriums kanalunabhängig als Perzentil der ermittelten Verteilung $\{S_m\}$ fest.
+\begin{equation}
+    \mathrm{TAIL\_ANOMALY} \iff S(tail) > T ~~ \mathrm{mit ~~} T = Q_p \left( \left\{ S_m \right\}  \right)
+\end{equation}
+Es handelt sich somit um einen anomalen Signalverlauf, wenn der kumulative Wiederanstieg der Abfallflanke den Wert überschreitet, unter dem das Rauschen in \textit{tail\_percentile} \% der fahrzeugfreien Abschnitte bleibt.
